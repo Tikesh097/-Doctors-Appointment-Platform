@@ -1,5 +1,9 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import Header from "@/components/ui/header";
+import { dark } from "@clerk/themes";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,24 +14,34 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+     <ClerkProvider
+     appearance={{
+      baseTheme:dark,
+     }}
+     >
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className}`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {/* header */}
+          <Header/>
 
-        {/* header */}
+          <main className="min-h-screen">{children}</main>
 
-        <main className="min-h-screen">{children}</main>
+          {/* footer */}
 
-        {/* footer */}
-
-        <footer className="bg-muted/50 py-12">
-          <div className="container mx-auto px-4 text-center text-gray-400 ">
-          <p>Made by tikesh</p>
-          </div>
-        </footer>
-
-
-
+          <footer className="bg-muted/50 py-12">
+            <div className="container mx-auto px-4 text-center text-gray-400 ">
+              <p>Made by tikesh</p>
+            </div>
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
+    </ClerkProvider>
   );
 }
