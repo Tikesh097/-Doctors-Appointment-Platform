@@ -18,25 +18,17 @@ const Header = () => {
                 </Link>
 
                 <div className='flex items-center space-x-2'>
-                <Show when="signed-out">
-                    <SignInButton />
-                    <SignUpButton>
-                        <button>
-                            Sign Up
-                        </button>
-                    </SignUpButton>
-                </Show>
-                
-                <Show when="signed-in">
-                    <UserButton />
-                </Show>
+                    <Show when="signed-in">
+                        <UserButton />
+                    </Show>
 
+                    <Show when="signed-out">
+                        <SignInButton />
+                        <SignUpButton />
+                    </Show>
+                    
                 </div>
-               
-
-
             </nav>
-
         </header>
     );
 }

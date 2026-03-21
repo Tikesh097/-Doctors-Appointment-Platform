@@ -127,3 +127,13 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .gradient {
+    @apply bg-linear-to-b from-emerald-500 to-teal-400;
+  }
+
+  .gradient-title {
+    @apply bg-linear-to-b from-emerald-500 to-teal-400 font-bold text-transparent bg-clip-text pb-1 pr-2;
+  }
+}
