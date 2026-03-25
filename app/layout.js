@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/ui/theme-provider";
-import Header from "@/components/ui/header";
+import { ThemeProvider } from "@/components/theme-provider";
+import Header from "@/components/header";
 import { dark } from "@clerk/themes";
 import { ClerkProvider } from "@clerk/nextjs";
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { creditBenefits, features, testimonials } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Pricing from "@/components/pricing";
 
 export default function Home() {
   return (
@@ -174,7 +175,7 @@ export default function Home() {
       <section className="py-24 md:py-32 relative">
         <div className="container mx-auto px-6 md:px-10 lg:px-16">
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-center">
             {/* Left text */}
             <div>
               <p className="text-xs font-semibold tracking-widest uppercase text-emerald-400 mb-4">
@@ -197,11 +198,15 @@ export default function Home() {
                 <Link href="/pricing">View All Plans <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
+            
+            <Pricing />
 
             {/* Right card */}
             <div className="rounded-3xl border border-white/8 bg-white/3 backdrop-blur-xl overflow-hidden">
+
               {/* Card header */}
               <div className="flex items-center gap-3 border-b border-white/8 px-8 py-5">
+
                 <div className="h-9 w-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
                   <Stethoscope className="h-4 w-4 text-emerald-400" />
                 </div>
