@@ -4,11 +4,16 @@ import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
 import React from 'react'
 import { checkUser } from '@/lib/checkUser';
 
-import { Calendar, ShieldCheck, Stethoscope, User } from 'lucide-react';
+import {Calendar, CreditCard, ShieldCheck, Stethoscope, User } from 'lucide-react';
 import { Button } from './ui/button';
+import { checkAndAllocateCredits } from '@/actions/credits';
+import { Badge } from './ui/badge';
 
 const Header = async () => {
     const user = await checkUser();
+    if (user?.role === "PATIENT") {
+        await checkAndAllocateCredits(user);
+    }
 
     return (
         <header className='fixed top-0 w-full border-b bg-background/80 backdrop-blur-md z-10 supports-backdrop-filter:bg-background/60'>
@@ -108,6 +113,28 @@ const Header = async () => {
                             </Link>
                         )}
                     </Show>
+
+                    {(!user ||  user?.role === "PATIENT") && (
+                        <Link href="/pricing">
+                            <Badge
+                                variant="outline"
+                                className="h-9 bg-emerald-900/20 border-emerald-700/30 px-3 py-1 flex items-center gap-2"
+                            >
+                                <CreditCard className="h-3.5 w-3.5 text-emerald-400" />
+
+                                <span className="text-emerald-400">
+                                    {user && user?.role === "PATIENT" ? (
+                                        <>
+                                            {user?.credits}{" "}
+                                            <span className="hidden md:inline">Credits</span>
+                                        </>
+                                    ) : (
+                                        <>Pricing</>
+                                    )}
+                                </span>
+                            </Badge>
+                        </Link>
+                    )}
 
                     {/* Sign-in / Signout logic  */}
                     <Show when="signed-in">

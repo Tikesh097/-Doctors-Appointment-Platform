@@ -4,9 +4,17 @@ import { PricingTable } from '@clerk/nextjs'
 
 const Pricing = () => {
   return (
-    <Card>
-        <CardContent>
-            <PricingTable/>
+    <Card className="border-emerald-900/30 shadow-lg bg-linear-to-b from-emerald-950/30 to-transparent">
+        <CardContent className="p-6 md:p-8">
+            <PricingTable checkoutProps={{
+              appearance:{
+                elements:{
+                  drawerRoot:{
+                    zIndex:200,
+                  },
+                },
+              },
+            }}/>
         </CardContent>
       
     </Card>
