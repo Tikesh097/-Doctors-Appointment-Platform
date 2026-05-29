@@ -1,33 +1,51 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  TrendingUp,
-  Calendar,
-  BarChart3,
-  CreditCard,
-  Loader2,
-  AlertCircle,
-  Coins,
+  TrendingUp, Calendar, BarChart3, CreditCard,
+  Loader2, AlertCircle, Coins, X, CheckCircle2,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { requestPayout } from "@/actions/payout";
 import useFetch from "@/hooks/use-fetch";
 import { toast } from "sonner";
+
+function SectionLabel({ children }) {
+  return (
+    <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-500 uppercase tracking-wide mb-2">
+      {children}
+    </p>
+  );
+}
+
+function StatusPill({ status }) {
+  const isProcessed = status === "PROCESSED";
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+      isProcessed
+        ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
+        : "bg-emerald-600 text-white border-emerald-700"
+    }`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${isProcessed ? "bg-emerald-500" : "bg-white animate-pulse"}`} />
+      {status.charAt(0) + status.slice(1).toLowerCase()}
+    </span>
+  );
+}
+
+function StatCard({ icon: Icon, label, value, sub }) {
+  return (
+    <div className="rounded-2xl border border-emerald-100 dark:border-emerald-900/50 bg-white dark:bg-black p-5 flex items-center justify-between gap-4">
+      <div>
+        <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-500 uppercase tracking-wide mb-1">{label}</p>
+        <p className="text-3xl font-black text-black dark:text-white leading-none">{value}</p>
+        {sub && <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1">{sub}</p>}
+      </div>
+      <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center shrink-0">
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+    </div>
+  );
+}
 
 export function DoctorEarnings({ earnings, payouts = [] }) {
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
@@ -41,361 +59,242 @@ export function DoctorEarnings({ earnings, payouts = [] }) {
     availablePayout = 0,
   } = earnings;
 
-  // Custom hook for payout request
   const { loading, data, fn: submitPayoutRequest } = useFetch(requestPayout);
 
-  // Check if there's any pending payout
-  const pendingPayout = payouts.find(
-    (payout) => payout.status === "PROCESSING"
-  );
+  const pendingPayout = payouts.find((p) => p.status === "PROCESSING");
+  const platformFee = availableCredits * 2;
 
   const handlePayoutRequest = async (e) => {
     e.preventDefault();
-
-    if (!paypalEmail) {
-      toast.error("PayPal email is required");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("paypalEmail", paypalEmail);
-
-    await submitPayoutRequest(formData);
+    if (!paypalEmail) { toast.error("PayPal email is required"); return; }
+    const fd = new FormData();
+    fd.append("paypalEmail", paypalEmail);
+    await submitPayoutRequest(fd);
   };
 
   useEffect(() => {
-    if (data?.success) {
-      setShowPayoutDialog(false);
-      setPaypalEmail("");
-      toast.success("Payout request submitted successfully!");
-    }
+    if (data?.success) { setShowPayoutDialog(false); setPaypalEmail(""); toast.success("Payout request submitted!"); }
   }, [data]);
-
-  const platformFee = availableCredits * 2; // $2 per credit
 
   return (
     <div className="space-y-6">
-      {/* Earnings Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-emerald-900/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Available Credits
-                </p>
-                <p className="text-3xl font-bold text-white">
-                  {availableCredits}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  ${availablePayout.toFixed(2)} available for payout
-                </p>
-              </div>
-              <div className="bg-emerald-900/20 p-3 rounded-full">
-                <Coins className="h-6 w-6 text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border-emerald-900/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">This Month</p>
-                <p className="text-3xl font-bold text-white">
-                  ${thisMonthEarnings.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-emerald-900/20 p-3 rounded-full">
-                <TrendingUp className="h-6 w-6 text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-emerald-900/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Total Appointments
-                </p>
-                <p className="text-3xl font-bold text-white">
-                  {completedAppointments}
-                </p>
-                <p className="text-xs text-muted-foreground">completed</p>
-              </div>
-              <div className="bg-emerald-900/20 p-3 rounded-full">
-                <Calendar className="h-6 w-6 text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-emerald-900/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Avg/Month</p>
-                <p className="text-3xl font-bold text-white">
-                  ${averageEarningsPerMonth.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-emerald-900/20 p-3 rounded-full">
-                <BarChart3 className="h-6 w-6 text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <StatCard icon={Coins} label="Available Credits" value={availableCredits} sub={`$${availablePayout.toFixed(2)} available for payout`} />
+        <StatCard icon={TrendingUp} label="This Month" value={`$${thisMonthEarnings.toFixed(2)}`} />
+        <StatCard icon={Calendar} label="Total Appointments" value={completedAppointments} sub="completed" />
+        <StatCard icon={BarChart3} label="Avg / Month" value={`$${averageEarningsPerMonth.toFixed(2)}`} />
       </div>
 
-      {/* Payout Section */}
-      <Card className="border-emerald-900/20">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-white flex items-center">
-            <CreditCard className="h-5 w-5 mr-2 text-emerald-400" />
-            Payout Management
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Current Payout Status */}
-          <div className="bg-muted/20 p-4 rounded-lg border border-emerald-900/20">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-white">
-                Available for Payout
-              </h3>
-              {pendingPayout ? (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-900/20 border-amber-900/30 text-amber-400"
-                >
-                  PROCESSING
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="bg-emerald-900/20 border-emerald-900/30 text-emerald-400"
-                >
-                  Available
-                </Badge>
-              )}
+      {/* Payout Management */}
+      <div className="rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-white dark:bg-black overflow-hidden">
+
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-emerald-100 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
+            <CreditCard className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-black dark:text-white">Payout Management</h2>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">Manage and request your earnings</p>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+
+          {/* Payout Status Panel */}
+          <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20 p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <SectionLabel>Available for Payout</SectionLabel>
+              {pendingPayout
+                ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white border border-emerald-700"><span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />Processing</span>
+                : <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Available</span>}
             </div>
 
             {pendingPayout ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Pending Credits</p>
-                    <p className="text-white font-medium">
-                      {pendingPayout.credits}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Pending Amount</p>
-                    <p className="text-white font-medium">
-                      ${pendingPayout.netAmount.toFixed(2)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">PayPal Email</p>
-                    <p className="text-white font-medium text-xs">
-                      {pendingPayout.paypalEmail}
-                    </p>
-                  </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { label: "Pending Credits", value: pendingPayout.credits },
+                    { label: "Pending Amount", value: `$${pendingPayout.netAmount.toFixed(2)}` },
+                    { label: "PayPal Email", value: pendingPayout.paypalEmail },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="p-3 rounded-xl bg-white dark:bg-black border border-emerald-100 dark:border-emerald-900/40">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-500 font-semibold uppercase tracking-wide">{label}</p>
+                      <p className="text-sm font-bold text-black dark:text-white mt-0.5 truncate">{value}</p>
+                    </div>
+                  ))}
                 </div>
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    Your payout request is being processed. You'll receive the
-                    payment once an admin approves it. Your credits will be
-                    deducted after processing.
-                  </AlertDescription>
-                </Alert>
+                <div className="flex gap-3 p-3.5 rounded-xl bg-white dark:bg-black border border-emerald-100 dark:border-emerald-900/40">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <p className="text-xs text-black dark:text-white leading-relaxed">
+                    Your payout request is being processed. You'll receive the payment once an admin approves it. Credits will be deducted after processing.
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Available Credits</p>
-                  <p className="text-white font-medium">{availableCredits}</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { label: "Available Credits", value: availableCredits },
+                    { label: "Payout Amount", value: `$${availablePayout.toFixed(2)}` },
+                    { label: "Platform Fee", value: `$${platformFee.toFixed(2)}` },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="p-3 rounded-xl bg-white dark:bg-black border border-emerald-100 dark:border-emerald-900/40">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-500 font-semibold uppercase tracking-wide">{label}</p>
+                      <p className="text-sm font-bold text-black dark:text-white mt-0.5">{value}</p>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Payout Amount</p>
-                  <p className="text-white font-medium">
-                    ${availablePayout.toFixed(2)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Platform Fee</p>
-                  <p className="text-white font-medium">
-                    ${platformFee.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            )}
 
-            {!pendingPayout && availableCredits > 0 && (
-              <Button
-                onClick={() => setShowPayoutDialog(true)}
-                className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700"
-              >
-                Request Payout for All Credits
-              </Button>
-            )}
-
-            {availableCredits === 0 && !pendingPayout && (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">
-                  No credits available for payout. Complete more appointments to
-                  earn credits.
-                </p>
+                {availableCredits > 0 ? (
+                  <button
+                    onClick={() => setShowPayoutDialog(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 border border-emerald-700 transition-colors"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Request Payout for All Credits
+                  </button>
+                ) : (
+                  <div className="text-center py-3">
+                    <p className="text-xs text-emerald-600 dark:text-emerald-500">No credits available. Complete more appointments to earn credits.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Payout Information */}
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-sm">
-              <strong>Payout Structure:</strong> You earn $8 per credit.
-              Platform fee is $2 per credit. Payouts include all your available
-              credits and are processed via PayPal.
-            </AlertDescription>
-          </Alert>
+          {/* Info box */}
+          <div className="flex gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+              <AlertCircle className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-black dark:text-white mb-1">Payout Structure</p>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed">
+                You earn $8 per credit. Platform fee is $2 per credit (20%). Payouts include all your available credits and are processed via PayPal.
+              </p>
+            </div>
+          </div>
 
           {/* Payout History */}
           {payouts.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium text-white">Payout History</h3>
+            <div>
+              <SectionLabel>Payout History</SectionLabel>
               <div className="space-y-2">
                 {payouts.slice(0, 5).map((payout) => (
-                  <div
-                    key={payout.id}
-                    className="flex items-center justify-between p-3 rounded-md bg-muted/10 border border-emerald-900/10"
-                  >
+                  <div key={payout.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
                     <div>
-                      <p className="text-white font-medium">
+                      <p className="text-sm font-bold text-black dark:text-white">
                         {format(new Date(payout.createdAt), "MMM d, yyyy")}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {payout.credits} credits • $
-                        {payout.netAmount.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {payout.paypalEmail}
+                      <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
+                        {payout.credits} credits · ${payout.netAmount.toFixed(2)} · {payout.paypalEmail}
                       </p>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={
-                        payout.status === "PROCESSED"
-                          ? "bg-emerald-900/20 border-emerald-900/30 text-emerald-400"
-                          : "bg-amber-900/20 border-amber-900/30 text-amber-400"
-                      }
-                    >
-                      {payout.status}
-                    </Badge>
+                    <StatusPill status={payout.status} />
                   </div>
                 ))}
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Payout Request Dialog */}
-      <Dialog open={showPayoutDialog} onOpenChange={setShowPayoutDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white">
-              Request Payout
-            </DialogTitle>
-            <DialogDescription>
-              Request payout for all your available credits
-            </DialogDescription>
-          </DialogHeader>
+      {/* Payout Modal */}
+      {showPayoutDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => e.target === e.currentTarget && setShowPayoutDialog(false)}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-black shadow-2xl overflow-hidden">
 
-          <form onSubmit={handlePayoutRequest} className="space-y-4">
-            <div className="bg-muted/20 p-4 rounded-lg space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  Available credits:
-                </span>
-                <span className="text-white">{availableCredits}</span>
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-5 bg-emerald-600">
+              <div>
+                <h3 className="text-base font-bold text-white">Request Payout</h3>
+                <p className="text-xs text-emerald-100 mt-0.5">Request payout for all your available credits</p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Gross amount:</span>
-                <span className="text-white">
-                  ${(availableCredits * 10).toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  Platform fee (20%):
-                </span>
-                <span className="text-white">-${platformFee.toFixed(2)}</span>
-              </div>
-              <div className="border-t border-emerald-900/20 pt-2 flex justify-between font-medium">
-                <span className="text-white">Net payout:</span>
-                <span className="text-emerald-400">
-                  ${availablePayout.toFixed(2)}
-                </span>
-              </div>
+              <button onClick={() => setShowPayoutDialog(false)} className="w-8 h-8 flex items-center justify-center rounded-lg text-white hover:bg-emerald-700 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="paypalEmail">PayPal Email</Label>
-              <Input
-                id="paypalEmail"
-                type="email"
-                placeholder="your-email@paypal.com"
-                value={paypalEmail}
-                onChange={(e) => setPaypalEmail(e.target.value)}
-                className="bg-background border-emerald-900/20"
-                required
-              />
-              <p className="text-sm text-muted-foreground">
-                Enter the PayPal email where you want to receive the payout.
-              </p>
-            </div>
+            <form onSubmit={handlePayoutRequest} className="px-6 py-5 space-y-5">
 
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-sm">
-                Once processed by admin, {availableCredits} credits will be
-                deducted from your account and ${availablePayout.toFixed(2)}{" "}
-                will be sent to your PayPal.
-              </AlertDescription>
-            </Alert>
+              {/* Breakdown */}
+              <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20 overflow-hidden">
+                {[
+                  { label: "Available credits", value: availableCredits },
+                  { label: "Gross amount", value: `$${(availableCredits * 10).toFixed(2)}` },
+                  { label: "Platform fee (20%)", value: `-$${platformFee.toFixed(2)}` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex justify-between px-4 py-3 border-b border-emerald-100 dark:border-emerald-900/40 text-sm">
+                    <span className="text-emerald-700 dark:text-emerald-400">{label}</span>
+                    <span className="font-semibold text-black dark:text-white">{value}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between px-4 py-3 text-sm">
+                  <span className="font-bold text-black dark:text-white">Net payout</span>
+                  <span className="font-black text-emerald-600 dark:text-emerald-400">${availablePayout.toFixed(2)}</span>
+                </div>
+              </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowPayoutDialog(false)}
-                disabled={loading}
-                className="border-emerald-900/30"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Requesting...
-                  </>
-                ) : (
-                  "Request Payout"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+              {/* Email input */}
+              <div className="space-y-1.5">
+                <label htmlFor="paypalEmail" className="text-xs font-semibold text-black dark:text-white uppercase tracking-wide">
+                  PayPal Email
+                </label>
+                <input
+                  id="paypalEmail"
+                  type="email"
+                  placeholder="your-email@paypal.com"
+                  value={paypalEmail}
+                  onChange={(e) => setPaypalEmail(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-black text-sm text-black dark:text-white placeholder:text-emerald-300 dark:placeholder:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                />
+                <p className="text-xs text-emerald-600 dark:text-emerald-500">Enter the PayPal email where you want to receive the payout.</p>
+              </div>
+
+              {/* Info */}
+              <div className="flex gap-3 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+                <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-white" />
+                </div>
+                <p className="text-xs text-black dark:text-white leading-relaxed">
+                  Once processed, {availableCredits} credits will be deducted and ${availablePayout.toFixed(2)} will be sent to your PayPal.
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowPayoutDialog(false)}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-black dark:text-white bg-white dark:bg-black border-2 border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 border border-emerald-700 disabled:opacity-50 transition-colors"
+                >
+                  {loading
+                    ? <><Loader2 className="w-4 h-4 animate-spin" />Requesting...</>
+                    : <><CheckCircle2 className="w-4 h-4" />Request Payout</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

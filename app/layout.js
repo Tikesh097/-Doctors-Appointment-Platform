@@ -35,9 +35,14 @@ export default function RootLayout({ children }) {
           {/* footer */}
 
           <footer className="bg-muted/50 py-12">
-            <div className="container mx-auto px-4 text-center text-gray-400 ">
-              <p>Made by tikesh</p>
-            </div>
+            <div className="container mx-auto px-4 text-center">
+    <p className="text-sm text-muted-foreground">
+      © {new Date().getFullYear()} All rights reserved. Developed by{" "}
+      <span className="font-semibold text-amber-600">
+        Tikesh Aswale
+      </span>
+    </p>
+  </div>
           </footer>
         </ThemeProvider>
       </body>
