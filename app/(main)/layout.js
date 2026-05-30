@@ -1,11 +1,17 @@
-import React from 'react'
+import React from "react";
+import { Toaster } from "sonner";
 
 const Mainlayout = ({ children }) => {
   return (
-    <div className='container mx-auto my-20'>
+    <div className="container mx-auto my-20">
       {children}
-    </div>
-  )
-}
 
-export default Mainlayout
+      <Toaster
+        richColors
+        position="top-right"
+      />
+    </div>
+  );
+};
+
+export default Mainlayout;

@@ -1,7 +1,7 @@
 import { TabsContent } from "@/components/ui/tabs";
 import  PendingDoctors  from "./_components/pending-doctors";
 import  VerifiedDoctors  from "./_components/verified-doctors";
-import  PendingPayouts  from "./_components/pending-payouts";
+import  {PendingPayouts}  from "./_components/pending-payouts";
 import {
   getPendingDoctors,
   getVerifiedDoctors,

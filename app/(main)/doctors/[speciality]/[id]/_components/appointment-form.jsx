@@ -44,7 +44,10 @@ export function AppointmentForm({
     formData.append("description", description);
 
     // Loading toast
-    const id = toast.loading("Booking your appointment...");
+    const id = toast.loading(
+      "Booking your appointment..."
+    );
+
     setToastId(id);
 
     await submitBooking(formData);
@@ -54,25 +57,32 @@ export function AppointmentForm({
   useEffect(() => {
     if (!data?.success) return;
 
-    toast.success("Appointment booked successfully! 🎉", {
-      id: toastId,
-      description: "Check your upcoming appointments for details.",
-      duration: 5000,
-    });
+    toast.success(
+      "Appointment booked successfully! 🎉",
+      {
+        id: toastId,
+        description:
+          "Check your upcoming appointments for details.",
+        duration: 5000,
+      }
+    );
 
     setDescription("");
     onComplete();
-  }, [data?.success, onComplete]);
+  }, [data?.success, onComplete, toastId]);
 
   // Handle errors
   useEffect(() => {
     if (!error) return;
 
     toast.error(
-      error.message || "Something went wrong. Please try again.",
-      { id: toastId }
+      error.message ||
+        "Something went wrong. Please try again.",
+      {
+        id: toastId,
+      }
     );
-  }, [error]);
+  }, [error, toastId]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
